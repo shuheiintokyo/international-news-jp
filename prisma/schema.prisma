@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model NewsArticle {
+  id             String   @id @default(cuid())
+  title          String
+  titleJa        String   // Japanese title translation
+  content        String   @db.Text
+  contentJa      String   @db.Text  // Japanese content translation
+  source         String   // News source name
+  sourceUrl      String   // Original article URL
+  imageUrl       String?  // Optional image URL
+  category       String   // News category
+  publishedAt    DateTime // Original publish date
+  translatedAt   DateTime @default(now()) // When we translated it
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([publishedAt])
+  @@index([category])
+  @@index([source])
+}
+
+model NewsSource {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  baseUrl     String
+  apiEndpoint String?
+  apiKey      String?
+  logo        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  nameJa    String   // Japanese name
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// For tracking last successful runs of scheduled jobs
+model JobLog {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g., "fetchNews", "cleanup"
+  lastRun   DateTime @default(now())
+  status    String   // "success", "failure"
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
